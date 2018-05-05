@@ -1,0 +1,5 @@
+
+class SuccessiveHalving(object):
+    '''
+    
+    '''
