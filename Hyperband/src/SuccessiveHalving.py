@@ -44,7 +44,11 @@ class SuccessiveHalving(object):
 
             """
         T = self._get_hyperparameter_configurations(self,self.n)
+
         raise NotImplementedError
+
+    def _get_top_k(self,T,L,k):
+        return [T[i] for i in np.argsort(L)[::-1][:k:]] #highest score
 
     def _get_hyperparameter_configurations(self,n):
         """
@@ -61,6 +65,7 @@ class SuccessiveHalving(object):
                                   estimator,
                                   ri,
                                   **params):
+
         """
             set the parameters of the model and return the score
             Args:
