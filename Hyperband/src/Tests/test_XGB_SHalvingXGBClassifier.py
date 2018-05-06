@@ -37,4 +37,4 @@ def test_update_booster():
     classifier.update(X,y,n_iterations=n_new_iterations)
     expected_n_estimators = init_n_estimators + n_new_iterations
 
-    assert (classifier.get_params()['n_estimators']==expected_n_estimators)
+    assert(classifier.get_params()['n_estimators']==expected_n_estimators)

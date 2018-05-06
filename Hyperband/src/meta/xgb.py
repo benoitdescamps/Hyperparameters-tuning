@@ -1,5 +1,6 @@
 from .SHalvingEstimator import SHalvingEstimator
 
+
 from xgboost import XGBClassifier,\
                     XGBRegressor, \
                     DMatrix
@@ -17,5 +18,4 @@ class SHalvingXGBClassifier(SHalvingEstimator):
             # add unit test for controle if future updates
             self.model.get_booster().update(dtrain,iteration=self.model.n_estimators)
             self.model.n_estimators += 1
-
 
