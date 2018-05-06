@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC,abstractmethod
 import uuid
 import pickle
 import os
@@ -23,8 +23,10 @@ class SHalvingEstimator(ABC):
         with open( os.path.join('../cache',self.name+'.pickle', "wb" ) ) as file:
             self.model = pickle.load(file)
 
+    def get_params(self):
+        return self.model.get_params()
 
-    @ABC.abstractmethod
+    @abstractmethod
     def update(self,X,y,n_iterations):
         return NotImplementedError
 
