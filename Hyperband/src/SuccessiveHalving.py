@@ -4,6 +4,7 @@ by K. Jamieson and A. Talwalkar.
 '''
 from sklearn.model_selection import ParameterSampler
 import numpy as np
+import math
 class SuccessiveHalving(object):
     """Applies successhalving on a model for n configurations max r ressources.
 
@@ -31,22 +32,24 @@ class SuccessiveHalving(object):
 
     """
     def __init__(self,estimator,n,r,param_grid,
-                 ressource_name = 'n_estimators',scoring=None, n_jobs=1,cv=None,seed=0):
+                 ressource_name = 'n_estimators',
+                 ressource_unit = 10,
+                 scoring=None, n_jobs=1,cv=None,seed=0):
         self.estimator = estimator
         self.n = n
         self.r = r
         self.param_grid = param_grid
         self.ressource_name = ressource_name
+        self.ressource_unit = ressource_unit
         self.seed = seed
         self.scoring = scoring
         self.n_jobs = n_jobs
-        self.cv = cv
 
+        self.history = list()
 
     def apply(self,
-              estimator,
-              X,
-              y):
+              Xtrain,ytrain,Xval,yval
+              ):
         """Apply Successive Halving:
              1. evaluate the performance of all conﬁgurations
              2. throw out the worst half
@@ -58,12 +61,48 @@ class SuccessiveHalving(object):
                     best configuration
 
             """
-        T = self._get_hyperparameter_configurations(self,self.n)
+        T = self._get_hyperparameter_configurations(self.n)
+        current_model_names= [None for i  in range(len(T))]
+        first_fit =True
 
-        raise NotImplementedError
+        n_iterations = self.r
+        while (len(T) > 1):
+            L = list()
+            new_history_entry = list()
+            for i in range(len(T)):
+                model_name,  score = self._run_then_return_val_loss(ri=n_iterations,
+                                               Xtrain=Xtrain, ytrain=ytrain,
+                                               Xval=Xval, yval=yval,
+                                               first_fit=first_fit,
+                                               model_name=current_model_names[i],
+                                               **T[i])
+                if first_fit:
+                    current_model_names[i] = model_name
+                L.append(score)
+                new_history_entry.append({
+                    'model_name': model_name,
+                 'score': score,
+                 **T[i]})
 
-    def _get_top_k(self,T,L,k):
-        return [T[i] for i in np.argsort(L)[::-1][:k:]] #highest score
+            self.history.append(new_history_entry)
+            if first_fit:
+                first_fit= False
+
+            remaining_model_names,T = self._get_top_k(T,current_model_names, L, k=math.ceil(len(T) / 2))
+
+            self._clean_cache(list(set(current_model_names)-set(remaining_model_names)))
+            current_model_names = remaining_model_names
+
+            n_iterations+=self.ressource_unit
+        return T
+
+    def _get_top_k(self,T,list_model_names,L,k):
+        indices =  np.argsort(L)[::-1][:k:]
+        return [list_model_names[i] for i in indices],[T[i] for i in indices] #highest score
+
+    def _clean_cache(self,list_model_names):
+        for name in list_model_names:
+            self.estimator.remove(name)
 
     def _get_hyperparameter_configurations(self,n):
         """
@@ -78,9 +117,10 @@ class SuccessiveHalving(object):
 
     def _run_then_return_val_loss(self,
                                   ri,
-                                  X,y,
+                                  Xtrain,ytrain,
+                                  Xval,yval,
                                   model_name = None,
-                                  first_fit=True,
+                                  first_fit=False,
                                   **params):
 
         """
@@ -94,17 +134,23 @@ class SuccessiveHalving(object):
         """
         if first_fit:
             self.estimator.set_params(**params,**{self.ressource_name:ri})
-            self.estimator.fit(X,y)
-            self.estimator.save()
+            self.estimator.fit(Xtrain,ytrain)
+            model_name = self.estimator.save()
+
         elif model_name:
             self.estimator.load(model_name)
 
-            assert(ri>self.estimator.n_iteration), 'The new ressource value ri should be greater than the current ressource value {}:{} of the estimator )'.format(self.ressource_name,self.estimator.n_iteration)
-            self.estimator.update(X,y,n_iterations=ri)
+            assert(ri>self.estimator.n_iteration(self.ressource_name)), 'The new ressource value ri should be greater than the current ressource value {}:{} of the estimator )'.format(self.ressource_name,self.estimator.n_iteration(self.ressource_name) )
+
+            self.estimator.update(Xtrain,ytrain,n_iterations=ri-self.estimator.n_iteration(ressource_name=self.ressource_name)  )
+            self.estimator.save(name=model_name)
+
         else:
             raise NotImplementedError
 
-        return self.estimator.score()
-        raise NotImplementedError
+        return model_name,self.scoring(self.estimator,Xval,yval)
+
+
+
 
 

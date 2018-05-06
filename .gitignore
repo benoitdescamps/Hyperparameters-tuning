@@ -1,8 +1,10 @@
 .idea/*
 **/*.idea/
 **/*.ipynb_checkpoints/
-**/*.pyc/
+**/*.pyc
+**/*pickle
 
 data/*
 doc/*
 */**/__pycache__/*
+*/**/*.cache/*
