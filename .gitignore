@@ -1,5 +1,7 @@
 .idea/*
 **/*.idea/
 **/*.ipynb_checkpoints/
+**/*.pyc/
+
 data/*
 doc/*
