@@ -57,8 +57,14 @@ class SuccessiveHalving(object):
              2. throw out the worst half
              3. return to 1. until one conﬁgurations remains.
             Args:
-                X (numpy array): data
-                y (numpy array): target
+                Xtrain: array:
+                    training data
+                ytrain array:
+                    training target
+                Xval: array:
+                    validation data
+                yval: array:
+                    validation target
             Returns:
                     best configuration
 
@@ -66,7 +72,7 @@ class SuccessiveHalving(object):
 
 
         T = self._get_hyperparameter_configurations(self.n)
-        current_model_names= [model['model_name'] for model  in T]
+
         first_fit =True
 
 
@@ -76,37 +82,32 @@ class SuccessiveHalving(object):
         assert(self.r>self.ressource_unit),'maximum number of ressource iterations r={} should be greater than the ressource unit = {}'.format(self.r,self.ressource_unit)
 
         while (len(T) > 1):
-            L = list()
-            for i in range(len(T)):
-                T[i]['score'] = self._run_then_return_val_loss(ri=n_iterations,
-                                               Xtrain=Xtrain, ytrain=ytrain,
-                                               Xval=Xval, yval=yval,
-                                               first_fit=first_fit,
-                                               model_name=T[i]['model_name'],
-                                               **T[i]['config'])
-                L.append(T[i]['score'])
 
-
-            self.history.append(T)
-
-
-            remaining_model_names,T = self._get_top_k(T,current_model_names,L,k=math.ceil(len(T) / 2))
-
-            self._clean_cache(list(set(current_model_names)-set(remaining_model_names)))
-            current_model_names = remaining_model_names
-
+            T = self._run_and_score_models(T,ri=int(n_iterations),Xtrain=Xtrain,ytrain=ytrain,
+                                           Xval=Xval,yval=yval,first_fit=first_fit)
+            T = self._get_top_k(T,k=math.ceil(len(T) / 2))
+            n_iterations*= eta
             if first_fit:
                 first_fit= False
 
-            n_iterations*= eta
-            n_iterations = int(n_iterations)
-
         return T
 
-    def _get_top_k(self,T,list_model_names,L,k):
-        indices =  np.argsort(L)[::-1][:k]
-        print(indices.shape)
-        return [list_model_names[i] for i in indices],[T[i] for i in indices] #highest score
+    def _run_and_score_models(self,T,ri,Xtrain,ytrain,Xval,yval,first_fit):
+        for i in range(len(T)):
+            T[i]['score'] = self._run_then_return_val_loss(ri=ri,
+                                                           Xtrain=Xtrain, ytrain=ytrain,
+                                                           Xval=Xval, yval=yval,
+                                                           first_fit=first_fit,
+                                                           model_name=T[i]['model_name'],
+                                                           **T[i]['config'])
+        self.history.append(T)
+        return T
+
+    def _get_top_k(self,T,k):
+        #indices =  np.argsort(L)[::-1]
+        T = sorted(T,key=lambda model:model['score'])[::-1]
+        self._clean_cache([model['model_name'] for model in T[k:]])
+        return T[:k]
 
     def _clean_cache(self,list_model_names):
         for name in list_model_names:
@@ -145,7 +146,7 @@ class SuccessiveHalving(object):
 
             self.estimator.set_params(**params,**{self.ressource_name:ri})
             self.estimator.fit(Xtrain,ytrain)
-            self.estimator.save()
+            self.estimator.save(name=model_name)
             print('first fit {}={} but ri={}'.format(self.ressource_name,self.estimator.n_iteration(self.ressource_name),ri))
 
         elif model_name:
