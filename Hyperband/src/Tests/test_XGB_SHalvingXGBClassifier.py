@@ -10,7 +10,7 @@ from .Transformers import DummyTransformer
 from xgboost import XGBRegressor, XGBClassifier
 from lightgbm import LGBMRegressor
 
-from ..meta.xgb import SHalvingXGBClassifier
+from ..meta.xgb import SHalvingXGBEstimator
 
 @pytest.fixture(scope="module")
 def dummyXGBClassifierPipeline():
@@ -32,7 +32,7 @@ def test_update_booster():
     init_n_estimators = 2
     n_new_iterations = 5
 
-    classifier = SHalvingXGBClassifier(n_estimators=init_n_estimators ,max_depth=1)
+    classifier = SHalvingXGBEstimator(model=XGBClassifier(n_estimators=init_n_estimators ,max_depth=1))
     classifier.fit(X,y)
     classifier.update(X,y,n_iterations=n_new_iterations)
     expected_n_estimators = init_n_estimators + n_new_iterations

@@ -3,9 +3,12 @@ import uuid
 import pickle
 import os
 
+from .core import EarlyStopException
+
 class SHalvingEstimator(ABC):
     def __init__(self):
         self.model = None
+        self.env = None
     def fit(self,X,y):
         self.model.fit(X,y)
 
@@ -16,13 +19,15 @@ class SHalvingEstimator(ABC):
         if not(name):
             name = str(uuid.uuid4().hex)
         with open( os.path.join('cache',name+'.pickle'), "wb" ) as file:
-            pickle.dump(self.model,file)
+            pickle.dump(self,file)
         return name
 
     def load(self,model_name):
         #add assert
         with open( os.path.join('cache',model_name+'.pickle'), "rb" ) as file:
-            self.model = pickle.load(file)
+            tmp = pickle.load(file)
+            self.model = tmp.model
+            self.env = tmp.env
     def remove(self,model_name):
         os.remove(os.path.join('cache',model_name+'.pickle') )
     def get_params(self):
@@ -36,7 +41,7 @@ class SHalvingEstimator(ABC):
         return self.model.get_params()[ressource_name]
 
     @abstractmethod
-    def update(self,X,y,n_iterations):
+    def update(self,Xtrain,ytrain,Xval,yval,scoring,n_iterations):
         return NotImplementedError
 
 

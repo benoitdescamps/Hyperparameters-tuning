@@ -11,7 +11,7 @@ from xgboost import XGBRegressor, XGBClassifier
 from lightgbm import LGBMRegressor
 
 from SuccessiveHalving import SuccessiveHalving
-from meta.xgb import SHalvingXGBClassifier
+from meta.xgb import SHalvingXGBEstimator
 
 from sklearn.metrics import accuracy_score, make_scorer
 
@@ -28,7 +28,7 @@ yval = np.random.randint(0, 2, 20)
 init_n_estimators = 2
 n_new_iterations = 5
 
-classifier = SHalvingXGBClassifier()
+classifier = SHalvingXGBEstimator(model=XGBClassifier(n_estimators=4))
 
 param_grid = {'max_depth': randint(1,10),
                 'learning_rate':lognorm(0.1)

@@ -154,7 +154,7 @@ class SuccessiveHalving(object):
 
             assert(ri>self.estimator.n_iteration(self.ressource_name)), 'The new ressource value ri={} should be greater than the current ressource value {}:{} of the estimator )'.format(ri,self.ressource_name,self.estimator.n_iteration(self.ressource_name) )
 
-            self.estimator.update(Xtrain,ytrain,n_iterations=ri-self.estimator.n_iteration(ressource_name=self.ressource_name)  )
+            self.estimator.update(Xtrain,ytrain,Xval,yval,scoring=self.scoring,n_iterations=ri)
             self.estimator.save(name=model_name)
 
         else:
