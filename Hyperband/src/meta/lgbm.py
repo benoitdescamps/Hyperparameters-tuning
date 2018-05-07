@@ -1,24 +1,24 @@
 '''
 Example of  wrapper for xgboost estimator
 supports:
-    *XGBClassifier
-    *XGBRegressor
+    *LGBMClassifier
+    *LGBMRegressor
 
 custom objective functions and weight not supported
 '''
+
 from .base import SHBaseEstimator
 from .callback import  early_stop,EarlyStopException
 
-from xgboost import DMatrix
-
+from lightgbm import Dataset
 import numpy as np
 
-class SHalvingXGBEstimator(SHBaseEstimator):
+class SHalvingLGBMEstimator(SHBaseEstimator):
     def __init__(self,model):
         self.model = model
         self.env = {'best_score':-np.infty,'best_iteration':-1,'earlier_stop':False}
     def update(self,Xtrain,ytrain,Xval,yval,scoring,n_iterations):
-        dtrain = DMatrix(data=Xtrain,label=ytrain)
+        dtrain = Dataset(data=Xtrain,label=ytrain)
 
         early_stop_callback = early_stop()
 
@@ -27,7 +27,7 @@ class SHalvingXGBEstimator(SHBaseEstimator):
                 # note:
                 # this is a get, but the internal booster in XGBClassifier is also updated
                 # add unit test for controle if future updates
-                self.model.get_booster().update(dtrain,iteration=self.model.n_estimators)
+                self.model.booster_.update(dtrain) #TODO: need to support custom objective functions fobj
                 self.model.n_estimators += 1
 
                 score = scoring(self,Xval,yval)
@@ -39,13 +39,8 @@ class SHalvingXGBEstimator(SHBaseEstimator):
                     early_stop_callback(env=self.env,
                                         score=score,
                                         iteration=self.model.n_estimators)
+                    #TODO: ??? add rollback????
                 except EarlyStopException:
                     print('Update Stopped Earlier! @ {} instead of {}'.format(self.model.n_estimators,n_iterations) )
                     self.env['earlier_stop'] = True
                     break
-
-
-
-
-
-

@@ -5,3 +5,7 @@ current support:
     * XGBRegressor
     * XGBClassifier
 '''
+
+import os
+if not os.path.exists('__cache__'):
+    os.makedirs('__cache__')

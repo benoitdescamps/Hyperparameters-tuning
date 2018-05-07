@@ -18,18 +18,18 @@ class SHBaseEstimator(ABC):
     def save(self,name=None):
         if not(name):
             name = str(uuid.uuid4().hex)
-        with open( os.path.join('cache',name+'.pickle'), "wb" ) as file:
+        with open( os.path.join('__cache__',name+'.pickle'), "wb" ) as file:
             pickle.dump(self,file)
         return name
 
     def load(self,model_name):
         #add assert
-        with open( os.path.join('cache',model_name+'.pickle'), "rb" ) as file:
+        with open( os.path.join('__cache__',model_name+'.pickle'), "rb" ) as file:
             tmp = pickle.load(file)
             self.model = tmp.model
             self.env = tmp.env
     def remove(self,model_name):
-        os.remove(os.path.join('cache',model_name+'.pickle') )
+        os.remove(os.path.join('__cache__',model_name+'.pickle') )
     def get_params(self):
         return self.model.get_params()
 
