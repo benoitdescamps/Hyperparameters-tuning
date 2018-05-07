@@ -5,6 +5,8 @@ by K. Jamieson and A. Talwalkar.
 from sklearn.model_selection import ParameterSampler
 import numpy as np
 import math
+import uuid
+
 class SuccessiveHalving(object):
     """Applies successhalving on a model for n configurations max r ressources.
 
@@ -61,43 +63,49 @@ class SuccessiveHalving(object):
                     best configuration
 
             """
+
+
         T = self._get_hyperparameter_configurations(self.n)
-        current_model_names= [None for i  in range(len(T))]
+        current_model_names= [model['model_name'] for model  in T]
         first_fit =True
 
-        n_iterations = self.r
+
+        eta = np.exp( np.log(self.r/float(self.ressource_unit))/math.floor(np.log(len(T))/np.log(2.)) )
+        n_iterations = self.ressource_unit
+        assert(eta>1.)
+        assert(self.r>self.ressource_unit),'maximum number of ressource iterations r={} should be greater than the ressource unit = {}'.format(self.r,self.ressource_unit)
+
         while (len(T) > 1):
             L = list()
-            new_history_entry = list()
             for i in range(len(T)):
-                model_name,  score = self._run_then_return_val_loss(ri=n_iterations,
+                T[i]['score'] = self._run_then_return_val_loss(ri=n_iterations,
                                                Xtrain=Xtrain, ytrain=ytrain,
                                                Xval=Xval, yval=yval,
                                                first_fit=first_fit,
-                                               model_name=current_model_names[i],
-                                               **T[i])
-                if first_fit:
-                    current_model_names[i] = model_name
-                L.append(score)
-                new_history_entry.append({
-                    'model_name': model_name,
-                 'score': score,
-                 **T[i]})
+                                               model_name=T[i]['model_name'],
+                                               **T[i]['config'])
+                L.append(T[i]['score'])
 
-            self.history.append(new_history_entry)
-            if first_fit:
-                first_fit= False
 
-            remaining_model_names,T = self._get_top_k(T,current_model_names, L, k=math.ceil(len(T) / 2))
+            self.history.append(T)
+
+
+            remaining_model_names,T = self._get_top_k(T,current_model_names,L,k=math.ceil(len(T) / 2))
 
             self._clean_cache(list(set(current_model_names)-set(remaining_model_names)))
             current_model_names = remaining_model_names
 
-            n_iterations+=self.ressource_unit
+            if first_fit:
+                first_fit= False
+
+            n_iterations*= eta
+            n_iterations = int(n_iterations)
+
         return T
 
     def _get_top_k(self,T,list_model_names,L,k):
-        indices =  np.argsort(L)[::-1][:k:]
+        indices =  np.argsort(L)[::-1][:k]
+        print(indices.shape)
         return [list_model_names[i] for i in indices],[T[i] for i in indices] #highest score
 
     def _clean_cache(self,list_model_names):
@@ -113,7 +121,8 @@ class SuccessiveHalving(object):
 
             """
         np.random.seed(self.seed)
-        return list(ParameterSampler(self.param_grid, n_iter=n))
+        return [{'model_name':str(uuid.uuid4().hex),'score':np.nan,'config':config}
+                for config in list(ParameterSampler(self.param_grid, n_iter=n))]
 
     def _run_then_return_val_loss(self,
                                   ri,
@@ -133,14 +142,16 @@ class SuccessiveHalving(object):
 
         """
         if first_fit:
+
             self.estimator.set_params(**params,**{self.ressource_name:ri})
             self.estimator.fit(Xtrain,ytrain)
-            model_name = self.estimator.save()
+            self.estimator.save()
+            print('first fit {}={} but ri={}'.format(self.ressource_name,self.estimator.n_iteration(self.ressource_name),ri))
 
         elif model_name:
             self.estimator.load(model_name)
 
-            assert(ri>self.estimator.n_iteration(self.ressource_name)), 'The new ressource value ri should be greater than the current ressource value {}:{} of the estimator )'.format(self.ressource_name,self.estimator.n_iteration(self.ressource_name) )
+            assert(ri>self.estimator.n_iteration(self.ressource_name)), 'The new ressource value ri={} should be greater than the current ressource value {}:{} of the estimator )'.format(ri,self.ressource_name,self.estimator.n_iteration(self.ressource_name) )
 
             self.estimator.update(Xtrain,ytrain,n_iterations=ri-self.estimator.n_iteration(ressource_name=self.ressource_name)  )
             self.estimator.save(name=model_name)
@@ -148,7 +159,7 @@ class SuccessiveHalving(object):
         else:
             raise NotImplementedError
 
-        return model_name,self.scoring(self.estimator,Xval,yval)
+        return self.scoring(self.estimator,Xval,yval)
 
 
 
