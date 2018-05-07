@@ -1,9 +1,9 @@
 '''
 Example of  wrapper for xgboost estimator
 supports:
-    *LGBMClassifier
-    *LGBMRegressor
-
+    *TODO: LGBMClassifier
+    *TODO: LGBMRegressor
+Issues: apparently cannot boost properly model.booster_
 custom objective functions and weight not supported
 '''
 
@@ -13,7 +13,7 @@ from .callback import  early_stop,EarlyStopException
 from lightgbm import Dataset
 import numpy as np
 
-class SHalvingLGBMEstimator(SHBaseEstimator):
+class SHLGBMEstimator(SHBaseEstimator):
     def __init__(self,model):
         self.model = model
         self.env = {'best_score':-np.infty,'best_iteration':-1,'earlier_stop':False}
@@ -27,7 +27,9 @@ class SHalvingLGBMEstimator(SHBaseEstimator):
                 # note:
                 # this is a get, but the internal booster in XGBClassifier is also updated
                 # add unit test for controle if future updates
-                self.model.booster_.update(dtrain) #TODO: need to support custom objective functions fobj
+
+                #TODO: fix this part: self.model.booster_.update -> leaves error due to train_set
+                self.model.booster_.update(train_set=dtrain) #TODO: need to support custom objective functions fobj
                 self.model.n_estimators += 1
 
                 score = scoring(self,Xval,yval)

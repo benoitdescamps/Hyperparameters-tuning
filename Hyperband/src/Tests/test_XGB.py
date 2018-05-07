@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score, make_scorer
 
 from xgboost import XGBRegressor, XGBClassifier
 
-from ..meta.xgb import SHalvingXGBEstimator
+from ..meta.xgb import SHXGBEstimator
 
 def test_update_booster():
     '''
@@ -26,7 +26,7 @@ def test_update_booster():
     n_new_iterations = 5
 
     scoring = make_scorer(accuracy_score)
-    classifier = SHalvingXGBEstimator(model=XGBClassifier(n_estimators=init_n_estimators ,max_depth=1))
+    classifier = SHXGBEstimator(model=XGBClassifier(n_estimators=init_n_estimators ,max_depth=1))
     classifier.fit(Xtrain,ytrain)
     classifier.update(Xtrain,ytrain,Xval,yval,scoring=scoring,n_iterations=n_new_iterations)
     expected_n_estimators = n_new_iterations

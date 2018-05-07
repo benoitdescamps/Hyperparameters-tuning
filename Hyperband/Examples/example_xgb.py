@@ -12,7 +12,7 @@ from xgboost import XGBRegressor, XGBClassifier
 from lightgbm import LGBMRegressor
 
 from SuccessiveHalving import SuccessiveHalving
-from meta.xgb import SHalvingXGBEstimator
+from meta.xgb import SHXGBEstimator
 
 from sklearn.metrics import accuracy_score, make_scorer
 

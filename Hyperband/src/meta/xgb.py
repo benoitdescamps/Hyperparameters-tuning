@@ -13,7 +13,7 @@ from xgboost import DMatrix
 
 import numpy as np
 
-class SHalvingXGBEstimator(SHBaseEstimator):
+class SHXGBEstimator(SHBaseEstimator):
     def __init__(self,model):
         self.model = model
         self.env = {'best_score':-np.infty,'best_iteration':-1,'earlier_stop':False}
