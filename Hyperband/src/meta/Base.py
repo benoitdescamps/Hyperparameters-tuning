@@ -5,7 +5,7 @@ import os
 
 from .core import EarlyStopException
 
-class SHalvingEstimator(ABC):
+class SHBaseEstimator(ABC):
     def __init__(self):
         self.model = None
         self.env = None

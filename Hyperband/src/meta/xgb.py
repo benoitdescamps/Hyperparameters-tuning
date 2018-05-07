@@ -1,14 +1,12 @@
-from .SHalvingEstimator import SHalvingEstimator
+from .base import SHBaseEstimator
 
 
-from xgboost import XGBClassifier,\
-                    XGBRegressor, \
-                    DMatrix
+from xgboost import DMatrix
 
 import numpy as np
 from .callback import  early_stop,EarlyStopException
 
-class SHalvingXGBEstimator(SHalvingEstimator):
+class SHalvingXGBEstimator(SHBaseEstimator):
     def __init__(self,model):
         self.model = model
         self.env = {'best_score':-np.infty,'best_iteration':-1,'earlier_stop':False}
