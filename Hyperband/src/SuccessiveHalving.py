@@ -7,10 +7,21 @@ import numpy as np
 import math
 import uuid
 
+import logging
+logger = logging.getLogger()
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
 class SuccessiveHalving(object):
     """Applies successhalving on a model for n configurations max r ressources.
 
     Args:
+        estimator: object instance with subclass SHBaseEstimator:
+            estimator wrapper
         n: integer:
             number of  hyperparameter configurations to explore
 
@@ -23,14 +34,17 @@ class SuccessiveHalving(object):
             {
             'param_1': distribution_n,
             etc...
-            'param_n': distribution_n,
-            '__ressource__':'name_ressource_parameter'
+            'param_n': distribution_n
             }
         seed: integer
 
         ressource_name: str
             Name of the ressource parameter
             e.g. for XGBClassifier this is 'n_estimators"
+        ressource unit: int
+            minimal step of the ressource.
+            Example:
+                for xgboost this could be n_estimators = 10
 
     """
     def __init__(self,estimator,n,r,param_grid,
@@ -147,7 +161,7 @@ class SuccessiveHalving(object):
             self.estimator.set_params(**params,**{self.ressource_name:ri})
             self.estimator.fit(Xtrain,ytrain)
             self.estimator.save(name=model_name)
-            print('first fit {}={} but ri={}'.format(self.ressource_name,self.estimator.n_iteration(self.ressource_name),ri))
+            logger.debug('first fit {}={}'.format(self.ressource_name,ri))
 
         elif model_name:
             self.estimator.load(model_name)

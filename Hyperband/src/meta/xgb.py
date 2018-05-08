@@ -14,9 +14,10 @@ from xgboost import DMatrix
 import numpy as np
 
 class SHXGBEstimator(SHBaseEstimator):
-    def __init__(self,model):
+    def __init__(self,model,ressource_name='n_estimators'):
         self.model = model
         self.env = {'best_score':-np.infty,'best_iteration':-1,'earlier_stop':False}
+        self.ressource_name = ressource_name
     def update(self,Xtrain,ytrain,Xval,yval,scoring,n_iterations):
         dtrain = DMatrix(data=Xtrain,label=ytrain)
 

@@ -1,10 +1,16 @@
 .idea/*
 **/*.idea/
-**/*.ipynb_checkpoints/
+**/*.ipynb_checkpoints
+**/*.ipynb
+**/*.ipyn_checkpoints/*
 **/*.pyc
 **/*pickle
+**/*.pdf
 
-data/*
-doc/*
+*/**/catboost_info/*
+*/**/data/*
+*/**/doc/*
+*/**/notebooks/*
 */**/__pycache__/*
+*/**/__cache__/*
 */**/*.cache/*

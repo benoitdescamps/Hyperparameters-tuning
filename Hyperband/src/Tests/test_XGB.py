@@ -26,7 +26,8 @@ def test_update_booster():
     n_new_iterations = 5
 
     scoring = make_scorer(accuracy_score)
-    classifier = SHXGBEstimator(model=XGBClassifier(n_estimators=init_n_estimators ,max_depth=1))
+    classifier = SHXGBEstimator(model=XGBClassifier(n_estimators=init_n_estimators ,max_depth=1), \
+                                ressource_name='n_estimators')
     classifier.fit(Xtrain,ytrain)
     classifier.update(Xtrain,ytrain,Xval,yval,scoring=scoring,n_iterations=n_new_iterations)
     expected_n_estimators = n_new_iterations

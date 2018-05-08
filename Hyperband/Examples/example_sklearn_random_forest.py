@@ -5,14 +5,11 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../
 
 import pytest
 import numpy as np
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, Imputer, StandardScaler
+from sklearn.ensemble import RandomForestClassifier
 
-from xgboost import XGBRegressor, XGBClassifier
-from lightgbm import LGBMRegressor
 
 from SuccessiveHalving import SuccessiveHalving
-from meta.xgb import SHXGBEstimator
+from meta.sklearn import SHSklearnEstimator
 
 from sklearn.metrics import accuracy_score, make_scorer
 
@@ -29,10 +26,11 @@ yval = np.random.randint(0, 2, 20)
 init_n_estimators = 2
 n_new_iterations = 5
 
-classifier = SHalvingXGBEstimator(model=XGBClassifier(n_estimators=4))
+classifier = SHSklearnEstimator(model=RandomForestClassifier(n_estimators=4), \
+                                ressource_name='n_estimators')
 
-param_grid = {'max_depth': randint(1,10),
-                'learning_rate':lognorm(0.1)
+param_grid = {'max_depth': randint(1, 10),
+              'min_impurity_decrease': lognorm(0.1)
               }
 scoring = make_scorer(accuracy_score)
 successiveHalving = SuccessiveHalving(
@@ -49,4 +47,3 @@ successiveHalving = SuccessiveHalving(
 
 T = successiveHalving.apply(Xtrain,ytrain,Xval,yval)
 print(T)
-

@@ -6,9 +6,10 @@ import os
 from .core import EarlyStopException
 
 class SHBaseEstimator(ABC):
-    def __init__(self):
+    def __init__(self,model,ressource_name=None):
         self.model = None
         self.env = None
+        self.ressource_name = ressource_name
     def fit(self,X,y):
         self.model.fit(X,y)
 
