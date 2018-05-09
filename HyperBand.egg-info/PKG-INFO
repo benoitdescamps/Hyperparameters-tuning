@@ -1,0 +1,12 @@
+Metadata-Version: 1.0
+Name: HyperBand
+Version: 0.1
+Summary: Implementation of SuccessiveHalving with wrappers for sklearn and xgboost
+Home-page: https://github.com/benoitdescamps/Hyperparameters-tuning
+Author: Benoit Descamps
+Author-email: benoitdescamps@hotmail.com
+License: UNKNOWN
+Description-Content-Type: UNKNOWN
+Description: UNKNOWN
+Keywords: Machine Learning Hyperparameters
+Platform: UNKNOWN
