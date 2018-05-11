@@ -6,6 +6,9 @@
 **/*.pyc
 **/*pickle
 **/*.pdf
+**/*.csv
+**/project/*
+**/target/*
 
 */**/catboost_info/*
 */**/data/*
